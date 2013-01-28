@@ -90,15 +90,19 @@ var PlayerView = {
 
     this.isPlaying = false;
     this.isSeeking = false;
+    this.isStopped = true;
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
+    this.intervalID = null;
+    this.isContextmenu = false;
 
     if (needSettings)
       asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('contextmenu', this);
 
     // Seeking audio too frequently causes the Desktop build hangs
     // A related Bug 739094 in Bugzilla
@@ -302,8 +306,44 @@ var PlayerView = {
     }
   },
 
+  updateMetadataStatus: function pv_updateMetadataStatus() {
+    // Update the playing information to AVRCP devices
+    var metadata = this.dataSource[this.currentIndex].metadata;
+    metadata.currentTime = this.audio.currentTime;
+    metadata.duration = this.audio.duration;
+    metadata.trackNumber = this.currentIndex + 1;
+    metadata.totalTracks = this.dataSource.length;
+
+    // Just add the functions or api here
+    // and Music player will update for you at the right time
+    // note that metadata is the object that contains
+    // all the useful information such as:
+    // - metadata.album
+    // - metadata.artist
+    // - metadata.title
+    // - metadata.duration
+    // - metadata.trackNumber
+    // - metadata.totalTracks
+  },
+
+  updatePlayingStatus: function pv_updatePlayingStatus() {
+    var info = {status: null,
+                duration: this.audio.duration,
+                currentTime: this.audio.currentTime};
+
+    if (this.isStpped)
+      info.status = 'stop';
+    else if (this.isPlaying)
+      info.status = 'play';
+    else if (!this.isPlaying)
+      info.status = 'pasue';
+
+    return info;
+  },
+
   play: function pv_play(targetIndex, backgroundIndex) {
     this.isPlaying = true;
+    this.isStopped = false;
 
     // Hold a wake lock to prevent from sleeping
     if (!cpuLock)
@@ -344,6 +384,8 @@ var PlayerView = {
       musicdb.getFile(songData.name, function(file) {
         this.setAudioSrc(file, true);
       }.bind(this));
+
+      this.updateMetadataStatus();
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // if we reach here, that means we want to a blob
       // When we have to play a blob, we need to parse the metadata
@@ -367,6 +409,8 @@ var PlayerView = {
       // If we reach here, the player is paused so resume it
       this.audio.play();
     }
+
+    this.updatePlayingStatus();
   },
 
   pause: function pv_pause() {
@@ -379,12 +423,18 @@ var PlayerView = {
     }
 
     this.audio.pause();
+
+    this.updatePlayingStatus();
   },
 
   stop: function pv_stop() {
+    this.isStopped = true;
+
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
+
+    this.updatePlayingStatus();
   },
 
   next: function pv_next(isAutomatic) {
@@ -394,6 +444,10 @@ var PlayerView = {
       this.setAudioSrc(this.dataSource);
       return;
     }
+
+    // Pause before starts a new song
+    this.pause();
+
     // We only repeat a song automatically. (when the song is ended)
     // If users click skip forward, player will go on to next one
     if (this.repeatOption === REPEAT_SONG && isAutomatic) {
@@ -478,6 +532,20 @@ var PlayerView = {
     this.play(realIndex);
   },
 
+  fastSeeking: function pv_fastSeeking(option) {
+    this.isSeeking = true;
+    var offset = (option === 'forward') ? 2 : -2;
+
+    this.intervalID = window.setInterval(function() {
+      this.seekAudio(this.audio.currentTime + offset);
+    }.bind(this), 15);
+  },
+
+  cancelFastSeeking: function pv_cancelFastSeeking() {
+    this.isSeeking = false;
+    window.clearInterval(this.intervalID);
+  },
+
   updateSeekBar: function pv_updateSeekBar() {
     if (this.isPlaying) {
       this.seekAudio();
@@ -534,6 +602,17 @@ var PlayerView = {
 
     switch (evt.type) {
       case 'click':
+        if (this.isContextmenu) {
+          this.isContextmenu = false;
+
+          // If we reach here, the contextmenu event was already fired
+          // and user's finger leaves the panel so the click event fires
+          // this means if fastSeeking was triggered, we should cancel it
+          if (this.intervalID)
+            this.cancelFastSeeking();
+          return;
+        }
+
         switch (target.id) {
           case 'player-cover':
           case 'player-cover-image':
@@ -638,6 +717,14 @@ var PlayerView = {
           var seekTime = x * this.seekBar.max;
           this.seekAudio(seekTime);
         }
+        break;
+      case 'contextmenu':
+        this.isContextmenu = true;
+
+        if (target.id === 'player-controls-next')
+          this.fastSeeking('forward');
+        if (target.id === 'player-controls-previous')
+          this.fastSeeking('backward');
         break;
       case 'timeupdate':
         if (!this.isSeeking)
