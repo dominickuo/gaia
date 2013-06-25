@@ -72,7 +72,7 @@ var PlayerView = {
     }
   },
 
-  init: function pv_init(needSettings) {
+  init: function pv_init() {
     this.artist = document.getElementById('player-cover-artist');
     this.album = document.getElementById('player-cover-album');
 
@@ -100,9 +100,6 @@ var PlayerView = {
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
-
-    if (needSettings)
-      asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
 
@@ -281,6 +278,14 @@ var PlayerView = {
         this.onerror(e);
       console.warn('parseAudioMetadata: error parsing metadata - ', e);
     }
+  },
+
+  getPermanentSettings: function(callback) {
+    asyncStorage.getItem(SETTINGS_OPTION_KEY, callback);
+  },
+
+  setPermanentSettings: function(values) {
+    asyncStorage.setItem(SETTINGS_OPTION_KEY, values);
   },
 
   setAudioSrc: function pv_setAudioSrc(file, playAfterSet) {
@@ -571,7 +576,7 @@ var PlayerView = {
 
             var newValue = ++this.repeatOption % 3;
             // Store the option when it's triggered by users
-            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
+            this.setPermanentSettings({
               repeat: newValue,
               shuffle: this.shuffleOption
             });
@@ -585,7 +590,7 @@ var PlayerView = {
 
             var newValue = !this.shuffleOption;
             // Store the option when it's triggered by users
-            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
+            this.setPermanentSettings({
               repeat: this.repeatOption,
               shuffle: newValue
             });
