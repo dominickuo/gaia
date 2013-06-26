@@ -11,9 +11,6 @@ var REPEAT_OFF = 0;
 var REPEAT_LIST = 1;
 var REPEAT_SONG = 2;
 
-// Key for store options of repeat and shuffle
-var SETTINGS_OPTION_KEY = 'settings_option_key';
-
 // We get headphoneschange event when the headphones is plugged or unplugged
 // A related Bug 809106 in Bugzilla
 var acm = navigator.mozAudioChannelManager;
@@ -278,14 +275,6 @@ var PlayerView = {
         this.onerror(e);
       console.warn('parseAudioMetadata: error parsing metadata - ', e);
     }
-  },
-
-  getPermanentSettings: function(callback) {
-    asyncStorage.getItem(SETTINGS_OPTION_KEY, callback);
-  },
-
-  setPermanentSettings: function(values) {
-    asyncStorage.setItem(SETTINGS_OPTION_KEY, values);
   },
 
   setAudioSrc: function pv_setAudioSrc(file, playAfterSet) {
@@ -576,7 +565,7 @@ var PlayerView = {
 
             var newValue = ++this.repeatOption % 3;
             // Store the option when it's triggered by users
-            this.setPermanentSettings({
+            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
               repeat: newValue,
               shuffle: this.shuffleOption
             });
@@ -590,7 +579,7 @@ var PlayerView = {
 
             var newValue = !this.shuffleOption;
             // Store the option when it's triggered by users
-            this.setPermanentSettings({
+            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
               repeat: this.repeatOption,
               shuffle: newValue
             });
