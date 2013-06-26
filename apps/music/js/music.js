@@ -536,11 +536,17 @@ var ModeManager = {
       // load Player.js then we can use the PlayerView object
       document.getElementById('views-player').classList.remove('hidden');
       LazyLoader.load('js/Player.js', function() {
-        if (!playerLoaded)
-          PlayerView.init(true);
-
-        if (callback)
-          callback();
+        if (!playerLoaded) {
+          PlayerView.init();
+          PlayerView.getPermanentSettings(function(data) {
+            PlayerView.setOptions(data);
+            callback();
+          });
+        } else {
+          if (callback) {
+            callback();
+          }
+        }
       });
     } else {
       if (mode === MODE_LIST || mode === MODE_PICKER) {
