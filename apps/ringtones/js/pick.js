@@ -202,8 +202,9 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
 
   function preview(url) {
     if (url) {  // If there is a URL, play it.
-      player.src = url;
-      player.play();
+      // player.src = url;
+      // player.play();
+      CrossfadePlaylistSample.play();
     }
     else {      // Otherwise, the user clicked None, so stop playing anything
       player.removeAttribute('src');
@@ -211,3 +212,157 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
     }
   }
 });
+
+
+function BufferLoader(context, urlList, callback) {
+  this.context = context;
+  this.urlList = urlList;
+  this.onload = callback;
+  this.bufferList = new Array();
+  this.loadCount = 0;
+}
+
+BufferLoader.prototype.loadBuffer = function(url, index) {
+  // Load buffer asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
+  var loader = this;
+
+  request.onload = function() {
+    // Asynchronously decode the audio file data in request.response
+    loader.context.decodeAudioData(
+      request.response,
+      function(buffer) {
+        if (!buffer) {
+          alert('error decoding file data: ' + url);
+          return;
+        }
+        loader.bufferList[index] = buffer;
+        if (++loader.loadCount == loader.urlList.length)
+          loader.onload(loader.bufferList);
+      },
+      function(error) {
+        console.error('decodeAudioData error', error);
+      }
+    );
+  }
+
+  request.onerror = function() {
+    alert('BufferLoader: XHR error');
+  }
+
+  request.send();
+}
+
+BufferLoader.prototype.load = function() {
+  for (var i = 0; i < this.urlList.length; ++i)
+  this.loadBuffer(this.urlList[i], i);
+}
+
+
+// Keep track of all loaded buffers.
+var BUFFERS = {};
+// Page-wide audio context.
+var context = null;
+
+// An object to track the buffers to load {name: path}
+var BUFFERS_TO_LOAD = {
+  jam: '/shared/resources/media/ringtones/ringer_classic_prism.ogg',
+  crowd: '/shared/resources/media/ringtones/ringer_classic_courier.opus'
+};
+
+// Loads all sound samples into the buffers object.
+function loadBuffers() {
+  // Array-ify
+  var names = [];
+  var paths = [];
+  for (var name in BUFFERS_TO_LOAD) {
+    var path = BUFFERS_TO_LOAD[name];
+    names.push(name);
+    paths.push(path);
+  }
+  bufferLoader = new BufferLoader(context, paths, function(bufferList) {
+    for (var i = 0; i < bufferList.length; i++) {
+      var buffer = bufferList[i];
+      var name = names[i];
+      BUFFERS[name] = buffer;
+    }
+  });
+  bufferLoader.load();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    // Fix up prefixing
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    context = new AudioContext();
+    // context.mozAudioChannelType = 'ringer';
+  }
+  catch(e) {
+    alert("Web Audio API is not supported in this browser");
+  }
+  loadBuffers();
+  // window.setTimeout(CrossfadePlaylistSample.play, 5000);
+});
+
+var CrossfadePlaylistSample = {
+  FADE_TIME: 1, // Seconds
+  playing: false
+};
+
+CrossfadePlaylistSample.play = function() {
+  var ctx = this;
+  context.mozAudioChannelType = 'content';
+  console.log('mozAudioChannelType is set!');
+  playHelper(BUFFERS.jam, BUFFERS.crowd);
+
+  function createSource(buffer) {
+    var source = context.createBufferSource();
+    var gainNode = context.createGain ? context.createGain() : context.createGainNode();
+    source.buffer = buffer;
+    // Connect source to gain.
+    source.connect(gainNode);
+    // Connect gain to destination.
+    gainNode.connect(context.destination);
+
+    return {
+      source: source,
+      gainNode: gainNode
+    };
+  }
+
+  function playHelper(bufferNow, bufferLater) {
+    var playNow = createSource(bufferNow);
+    var source = playNow.source;
+    ctx.source = source;
+    var gainNode = playNow.gainNode;
+    var duration = bufferNow.duration;
+    var currTime = context.currentTime;
+    // Fade the playNow track in.
+    gainNode.gain.linearRampToValueAtTime(0, currTime);
+    gainNode.gain.linearRampToValueAtTime(1, currTime + 1);
+    // Play the playNow track.
+    source.start ? source.start(0) : source.noteOn(0);
+    // At the end of the track, fade it out.
+    gainNode.gain.linearRampToValueAtTime(1, currTime + duration-1);
+    gainNode.gain.linearRampToValueAtTime(0, currTime + duration);
+    // Schedule a recursive track change with the tracks swapped.
+    // var recurse = arguments.callee;
+    // ctx.timer = setTimeout(function() {
+      // recurse(bufferLater, bufferNow);
+    // }, (duration - 1) * 1000);
+  }
+
+};
+
+CrossfadePlaylistSample.stop = function() {
+  clearTimeout(this.timer);
+  this.source.stop ? this.source.stop(0) : this.source.noteOff(0);
+};
+
+CrossfadePlaylistSample.toggle = function() {
+  this.playing ? this.stop() : this.play();
+  this.playing = !this.playing;
+};
