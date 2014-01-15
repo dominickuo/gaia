@@ -225,8 +225,8 @@ function BufferLoader(context, urlList, callback) {
 BufferLoader.prototype.loadBuffer = function(url, index) {
   // Load buffer asynchronously
   var request = new XMLHttpRequest();
-  request.open("GET", url, true);
-  request.responseType = "arraybuffer";
+  request.open('GET', url, true);
+  request.responseType = 'arraybuffer';
 
   var loader = this;
 
@@ -247,19 +247,19 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
         console.error('decodeAudioData error', error);
       }
     );
-  }
+  };
 
   request.onerror = function() {
     alert('BufferLoader: XHR error');
-  }
+  };
 
   request.send();
-}
+};
 
 BufferLoader.prototype.load = function() {
   for (var i = 0; i < this.urlList.length; ++i)
   this.loadBuffer(this.urlList[i], i);
-}
+};
 
 
 // Keep track of all loaded buffers.
@@ -300,8 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
     context = new AudioContext();
     // context.mozAudioChannelType = 'ringer';
   }
-  catch(e) {
-    alert("Web Audio API is not supported in this browser");
+  catch (e) {
+    alert('Web Audio API is not supported in this browser');
   }
   loadBuffers();
   // window.setTimeout(CrossfadePlaylistSample.play, 5000);
@@ -314,13 +314,14 @@ var CrossfadePlaylistSample = {
 
 CrossfadePlaylistSample.play = function() {
   var ctx = this;
-  context.mozAudioChannelType = 'content';
+  context.mozAudioChannelType = 'ringer';
   console.log('mozAudioChannelType is set!');
   playHelper(BUFFERS.jam, BUFFERS.crowd);
 
   function createSource(buffer) {
     var source = context.createBufferSource();
-    var gainNode = context.createGain ? context.createGain() : context.createGainNode();
+    var gainNode = context.createGain ?
+      context.createGain() : context.createGainNode();
     source.buffer = buffer;
     // Connect source to gain.
     source.connect(gainNode);
@@ -346,7 +347,7 @@ CrossfadePlaylistSample.play = function() {
     // Play the playNow track.
     source.start ? source.start(0) : source.noteOn(0);
     // At the end of the track, fade it out.
-    gainNode.gain.linearRampToValueAtTime(1, currTime + duration-1);
+    gainNode.gain.linearRampToValueAtTime(1, currTime + duration - 1);
     gainNode.gain.linearRampToValueAtTime(0, currTime + duration);
     // Schedule a recursive track change with the tracks swapped.
     // var recurse = arguments.callee;
