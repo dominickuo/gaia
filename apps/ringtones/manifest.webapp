@@ -10,7 +10,7 @@
   },
   "permissions": {
     "settings":{ "access": "readonly" },
-    "audio-channel-content":{}
+    "audio-channel-ringer":{}
   },
   "activities": {
     "pick": {
