@@ -151,13 +151,15 @@ var PlayerView = {
   // we regulate the controls to restrict some actions and hope it can give
   // better ux to the specific scenario.
   checkSCOStatus: function pv_checkSCOStatus() {
-    var SCOStatus = MusicComms.isSCOEnabled;
+    if (typeof MusicComms !== 'undefined') {
+      var SCOStatus = MusicComms.isSCOEnabled;
 
-    this.playControl.disabled = this.previousControl.disabled =
-      this.nextControl.disabled = SCOStatus;
+      this.playControl.disabled = this.previousControl.disabled =
+        this.nextControl.disabled = SCOStatus;
 
-    this.seekRegion.parentNode.classList.toggle('disabled', SCOStatus);
-    this.banner.classList.toggle('visible', SCOStatus);
+      this.seekRegion.parentNode.classList.toggle('disabled', SCOStatus);
+      this.banner.classList.toggle('visible', SCOStatus);
+    }
   },
 
   clean: function pv_clean() {

@@ -121,7 +121,7 @@ MediaRemoteControls.prototype.removeCommandListener = function(name, listener) {
 /**
  * Start to listen to the system message and configure the bluetooth.
  */
-MediaRemoteControls.prototype.start = function() {
+MediaRemoteControls.prototype.start = function(callback) {
   var self = this;
 
   // AVRCP commands use system message.
@@ -151,6 +151,9 @@ MediaRemoteControls.prototype.start = function() {
     self.defaultAdapter.onrequestmediaplaystatus = playstatusHandler;
     self.defaultAdapter.ona2dpstatuschanged = a2dpConnectionHandler;
     self.defaultAdapter.onscostatuschanged = scoConnectionHandler;
+
+    if (callback)
+      callback();
   }
 
   function playstatusHandler() {
