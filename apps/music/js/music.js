@@ -187,6 +187,10 @@ function init() {
         currentOverlay === 'upgrade')
       showOverlay(null);
 
+    StateManager.restore(function() {
+      console.log('restored!');
+    });
+
     // Display music that we already know about
     showCurrentView(function() {
       // Hide the  spinner once we've displayed the initial screen
@@ -555,6 +559,8 @@ var ModeManager = {
 
         // Music only share the playing file when it's in player mode.
         this.enableNFCSharing(true);
+
+        StateManager.save();
 
         if (callback)
           callback();
