@@ -195,6 +195,10 @@ function init() {
       // Concurrently, start scanning for new music
       musicdb.scan();
 
+      StateManager.restore(function() {
+        console.log('restored!');
+      });
+
       // Only init the communication when music is not in picker mode.
       if (document.URL.indexOf('#pick') === -1) {
         // We need to wait to init the music comms until the UI is fully loaded
@@ -555,6 +559,8 @@ var ModeManager = {
 
         // Music only share the playing file when it's in player mode.
         this.enableNFCSharing(true);
+
+        StateManager.save();
 
         if (callback)
           callback();
@@ -1582,6 +1588,7 @@ var SubListView = {
     this.shuffleButton =
       document.getElementById('views-sublist-controls-shuffle');
 
+    this.info = null;
     this.dataSource = [];
     this.index = 0;
 
@@ -1593,6 +1600,7 @@ var SubListView = {
     if (sublistHandle)
       musicdb.cancelEnumeration(sublistHandle);
 
+    this.info = null;
     this.dataSource = [];
     this.index = 0;
     this.offscreenImage.src = '';
@@ -1633,6 +1641,14 @@ var SubListView = {
   activate: function(option, data, index, keyRange, direction, callback) {
     var targetOption = (option === 'date') ? option : 'metadata.' + option;
     SubListView.clean();
+
+    SubListView.info = {
+      option: option,
+      data: data,
+      index: index,
+      keyRange: keyRange.lower,
+      direction: direction
+    };
 
     sublistHandle = musicdb.enumerateAll(targetOption, keyRange, direction,
                                          function lv_enumerateAll(dataArray) {
