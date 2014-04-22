@@ -34,21 +34,24 @@ function setWallpaper(settings, config) {
 
 function setRingtone(settings, config) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
-  let ringtone_name = 'shared/resources/media/ringtones/' +
+  let ringtone_name = '/shared/resources/media/ringtones/' +
     'ringer_classic_courier.opus';
   let ringtone = utils.resolve(ringtone_name,
     config.GAIA_DIR);
 
   settings['dialer.ringtone'] = utils.getFileAsDataURI(ringtone);
+  settings['dialer.ringtone.filename'] = ringtone_name;
 }
 
 function setNotification(settings, config) {
   // Grab notifier_bell.opus and convert it into a base64 string
-  let notification_name = 'shared/resources/media/notifications/' +
+  let notification_name = '/shared/resources/media/notifications/' +
     'notifier_bell.opus';
   let notification = utils.resolve(notification_name,
     config.GAIA_DIR);
+
   settings['notification.ringtone'] = utils.getFileAsDataURI(notification);
+  settings['notification.ringtone.filename'] = notification_name;
 }
 
 /* Setup the default keyboard layouts according to the current language */

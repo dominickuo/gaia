@@ -1,6 +1,6 @@
 navigator.mozSetMessageHandler('activity', function handler(activity) {
   var selectedSoundName, selectedSoundURL;
-  var baseURL, listURL, settingKey;
+  var baseURL, listURL, settingKey, settingFilenameKey;
   var toneType = activity.source.data.type;
   var allowNone = activity.source.data.allowNone;
 
@@ -19,12 +19,14 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
     baseURL = '/shared/resources/media/ringtones/';
     listURL = '/shared/resources/media/ringtones/list.json';
     settingKey = 'dialer.ringtone.name';
+    settingFilenameKey = 'dialer.ringtone.filename';
     break;
 
   case 'alerttone':
     baseURL = '/shared/resources/media/notifications/';
     listURL = '/shared/resources/media/notifications/list.json';
     settingKey = 'notification.ringtone.name';
+    settingFilenameKey = 'notification.ringtone.filename';
     break;
 
   default:
@@ -90,7 +92,9 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
   getSoundFilenames(function(filenames) {
     getCurrentSoundName(function(currentSoundName) {
       getSoundNames(filenames, function(sounds) {
-        buildUI(sounds, currentSoundName);
+        fixCurrentSoundName(currentSoundName, sounds, function(fixedName) {
+          buildUI(sounds, fixedName);
+        });
       });
     });
   });
@@ -147,6 +151,26 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
 
       callback(sounds);
     });
+  }
+
+  function fixCurrentSoundName(soundName, sounds, callback) {
+    if (!soundName) {
+      navigator.mozSettings.createLock().get(settingFilenameKey).onsuccess =
+        function(e) {
+          var filename = e.target.result[settingFilenameKey];
+
+          for (var name in sounds) {
+            if (sounds[name] === filename) {
+              soundName = name;
+            }
+          }
+
+          callback(soundName);
+        };
+    }
+    else {
+      callback(soundName);
+    }
   }
 
   function buildUI(sounds, currentSoundName) {
