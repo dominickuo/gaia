@@ -441,6 +441,8 @@
   // Note: this string does not always equal to currentChannel since some
   // different channels are grouped together to listen to the same setting.
   function getChannel() {
+    getActiveChannel();
+
     if (onCall())
       return 'telephony';
 
@@ -463,6 +465,55 @@
             (window.lockScreen && window.lockScreen.locked) ||
             FtuLauncher.isFtuRunning() ? 'notification' : 'content';
         }
+    }
+  }
+
+  function getActiveChannel() {
+    var activeApp = AppWindowManager.getActiveApp();
+
+    if (activeApp) {
+      var name = new ManifestHelper(activeApp.manifest).name;
+      console.log(name);
+
+      var permissions = new ManifestHelper(activeApp.manifest).permissions;
+
+      // * normal
+      // * content
+      // * notification
+      // * alarm
+      // * telephony
+      // * ringer
+      // * publicnotification
+      // * unknown
+      var channelTypes = [
+        'normal',
+        'content',
+        'notification',
+        'alarm',
+        'telephony',
+        'ringer',
+        'publicnotification'
+      ];
+
+      var appChannels = [];
+
+      channelTypes.forEach(function(type) {
+        if (('audio-channel-' + type) in permissions) {
+          appChannels.push[type];
+        }
+      });
+
+      if (appChannels.indexOf('notification') !== -1 ||
+          appChannels.indexOf('ringer') !== -1) {
+        console.log('audio-channel-' + 'notification');
+      } else if (appChannels.indexOf('alarm') !== -1) {
+        console.log('audio-channel-' + 'alarm');
+      } else {
+        console.log('audio-channel-' + 'content');
+      }
+    } else {
+      // No app has been launched yet.
+      console.log('audio-channel-' + 'notification');
     }
   }
 
