@@ -441,7 +441,7 @@
   // Note: this string does not always equal to currentChannel since some
   // different channels are grouped together to listen to the same setting.
   function getChannel() {
-    getActiveChannel();
+    getActiveAppChannel();
 
     if (onCall())
       return 'telephony';
@@ -468,7 +468,7 @@
     }
   }
 
-  function getActiveChannel() {
+  function getActiveAppChannel() {
     var activeApp = AppWindowManager.getActiveApp();
 
     if (activeApp) {
@@ -498,8 +498,9 @@
       var appChannels = [];
 
       channelTypes.forEach(function(type) {
-        if (('audio-channel-' + type) in permissions) {
-          appChannels.push[type];
+        var channel = 'audio-channel-' + type;
+        if (permissions.hasOwnProperty(channel)) {
+          appChannels.push(type);
         }
       });
 
