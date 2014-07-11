@@ -46,21 +46,7 @@ var MediaAppAgent = {
   },
 
   _handleMemorypressure: function maa_handleMemorypressure(event) {
-    switch (this.playStatus) {
-      case 'STOPPED':
-        WindowManager.kill(this.origin);
-        break;
-      // Should we kill the media app because the player is paused/interrupted?
-      // Maybe use a timer to check if the user has paused the player, or the
-      // player is interrupted for a while, so that we can assume the user also
-      // expect the media app is closed silently.
-      case 'PAUSED':
-        WindowManager.kill(this.origin);
-        break;
-      case 'mozinterruptbegin':
-        WindowManager.kill(this.origin);
-        break;
-    }
+    WindowManager.kill(this.origin);
   }
 };
 
