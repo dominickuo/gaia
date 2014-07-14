@@ -112,6 +112,12 @@ window.addEventListener('localized', function onlocalized() {
 // bar (to show the titlebar) when we enter sublist mode or player mode
 var displayingScanProgress = false;
 
+window.addEventListener('visibilitychange', function visibilityHandler() {
+  if (document.hidden && displayingScanProgress) {
+    window.close();
+  }
+});
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
