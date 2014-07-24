@@ -53,8 +53,11 @@ var PlayerView = {
   },
 
   get audio() {
-    delete this._audio;
-    return this._audio = document.getElementById('player-audio');
+    if (!this._audio) {
+      this._audio = new Audio();
+    }
+
+    return this._audio;
   },
 
   get playStatus() {
