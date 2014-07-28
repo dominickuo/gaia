@@ -936,6 +936,10 @@ li.list-header {
   pointer-events: none;
 }
 
+body.list-text-mode li.list-header {
+  width: calc(100% - 5.5rem);
+}
+
 li.list-item {
   list-style-type: none;
   position: relative;
@@ -943,6 +947,10 @@ li.list-item {
   background-size: contain;
   background-position: calc(100% - 2.5rem) -0.1rem;
   background-repeat: no-repeat;
+}
+
+body.list-text-mode li.list-item {
+  background-size: 0 0;
 }
 
 li.list-item a {
@@ -995,6 +1003,14 @@ li.list-item a:active {
   padding: 0 0.5rem 0 3rem;
   font-size: 1.7rem;
   color: #8a9699;
+}
+
+body.list-text-mode .list-main-title {
+  width: calc(100% - 5.5rem);
+}
+
+body.list-text-mode .list-sub-title {
+  width: calc(100% - 5.5rem);
 }
 
 .list-single-title {
