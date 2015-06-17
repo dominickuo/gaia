@@ -693,6 +693,16 @@ html[dir="rtl"] #player-cover-share {
   margin: 0 0 0 1rem;
 }
 
+#player-cover-bpm {
+  position: absolute;
+  z-index: 50;
+  top: 20%;
+  width: 100%;
+  font-size: 20rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
 #player-cover-buttons {
   bottom: calc(-100% + 5rem);
 }

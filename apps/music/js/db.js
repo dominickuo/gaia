@@ -1,6 +1,6 @@
 /* exported musicdb, initDB */
 /* global AlbumArt, App, AudioMetadata, LazyLoader, MediaDB, ModeManager,
-   MODE_TILES, PlayerView, TabBar, TilesView, TitleBar */
+   MODE_TILES, PlayerView, TabBar, TilesView, TitleBar, AudioBPM */
 'use strict';
 
 // The MediaDB object that manages the filesystem and the database of metadata
@@ -37,7 +37,11 @@ function initDB() {
 
   function metadataParserWrapper(file, onsuccess, onerror) {
     LazyLoader.load(
-      ['/js/metadata_scripts.js', '/js/metadata/album_art.js'],
+      ['/js/metadata_scripts.js',
+       '/js/metadata/album_art.js',
+       '/js/metadata/spotify-web-api.js',
+       '/js/metadata/echonest-api.js',
+       '/js/metadata/bpm.js'],
       function() {
         AudioMetadata.parse(file).then(function(metadata) {
           return AlbumArt.process(file, metadata);
@@ -183,6 +187,15 @@ function initDB() {
   // updated list of files. We don't want to do this for every new file
   // but we do want to redisplay every so often.
   musicdb.oncreated = function(event) {
+    event.detail.forEach(function(data) {
+      AudioBPM.query(data.metadata, function(m) {
+        // Only update metadata if the bpm is not 100.
+        if (m.bpm !== 100) {
+          musicdb.updateMetadata(data.name, m);
+        }
+      });
+    });
+
     if (scanning) {
       var metadata = event.detail[0].metadata;
       var n = event.detail.length;

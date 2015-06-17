@@ -85,6 +85,8 @@ var PlayerView = {
     this.coverImageURL = null;
     this.shareButton = document.getElementById('player-cover-share');
 
+    this.bpmText = document.getElementById('player-cover-bpm');
+
     this.repeatButton = document.getElementById('player-album-repeat');
     this.shuffleButton = document.getElementById('player-album-shuffle');
 
@@ -246,6 +248,8 @@ var PlayerView = {
     this.albumText.textContent =
       metadata.album || navigator.mozL10n.get('unknownAlbum');
     this.albumText.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
+
+    this.bpmText.textContent = metadata.bpm;
 
     this.setCoverImage(fileinfo);
   },
@@ -943,6 +947,7 @@ var PlayerView = {
           case 'player-cover':
           case 'player-cover-image-1':
           case 'player-cover-image-2':
+          case 'player-cover-bpm':
             this.showInfo();
             break;
           case 'player-controls-play':

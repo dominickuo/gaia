@@ -113,6 +113,7 @@ var AudioMetadata = (function() {
     }
 
     metadata.rated = metadata.played = 0;
+    metadata.bpm = 100;
     return metadata;
   }
 

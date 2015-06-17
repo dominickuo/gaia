@@ -44,6 +44,9 @@ apps/gallery/js/metadata_scripts.js
 apps/keyboard/js/layouts/**
 apps/music/bower_components/**
 apps/music/js/metadata_scripts.js
+apps/music/js/metadata/bpm.js
+apps/music/js/metadata/echonest-api.js
+apps/music/js/metadata/spotify-web-api.js
 apps/keyboard/js/imes/jszhuyin/tools/cook.js
 apps/keyboard/build/keyboard-config.js
 apps/settings/js/vendor/alameda.js
