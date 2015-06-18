@@ -148,6 +148,8 @@ MediaRemoteControls.prototype._setupBluetooth = function(callback) {
   this._bluetoothHelper.ona2dpstatuschanged = a2dpConnectionHandler;
   this._bluetoothHelper.onscostatuschanged = scoConnectionHandler;
 
+  this._setupGatt();
+
   if (callback) {
     callback();
   }
@@ -180,6 +182,32 @@ MediaRemoteControls.prototype._setupBluetooth = function(callback) {
       self._commandHandler(AVRCP.PLAY_PRESS);
     }
   }
+};
+
+MediaRemoteControls.prototype._setupGatt = function() {
+  console.log('@@@: ' + '_setupGatt');
+  this.bluetooth = navigator.mozBluetooth;
+
+  this.bluetooth.addEventListener('attributechanged', (event) => {
+    console.log('@@@: ' + 'bluetooth attributechanged');
+    var adapter = this.bluetooth.getAdapters()[0];
+
+    adapter.stopDiscovery().then(function(value) {
+      adapter.startDiscovery().then(function (value) {
+        value.addEventListener('devicefound', function(event) {
+          var device = event.device;
+
+          if (device.name.indexOf('MIO') !== -1) {
+            if (device.gatt) {
+              device.gatt.connect().then(function(value) {
+                console.log('@@@: ' + device.name + ' - connected');
+              });
+            }
+          }
+        });
+      });
+    });
+  });
 };
 
 /*
