@@ -201,6 +201,41 @@ MediaRemoteControls.prototype._setupGatt = function() {
             if (device.gatt) {
               device.gatt.connect().then(function(value) {
                 console.log('@@@: ' + device.name + ' - connected');
+
+                device.gatt.discoverServices().then(function(value) {
+                  console.log('@@@: ' + 'services - ' + device.gatt.services.length);
+
+                  device.gatt.services.forEach(function(service) {
+                    service.characteristics.forEach(function(characteristic) {
+                      if (characteristic.uuid === '00002a37-0000-1000-8000-00805f9b34fb') {
+                        console.log('@@@: ' + 'characteristic - ' + characteristic.uuid);
+
+                        characteristic.startNotifications().then(function(value) {
+                          console.log('@@@: ' + 'characteristic - startNotifications - ' + value);
+                        });
+
+                        characteristic.descriptors.forEach(function(descriptor) {
+                          if (descriptor.uuid === '00002902-0000-1000-8000-00805f9b34fb') {
+                            console.log('@@@: ' + 'descriptor - ' + descriptor.uuid);
+
+                            var json = { notification: true, indication: true };
+                            var j2v = gattJsonToValue('descriptor', descriptor.uuid, json);
+
+                            descriptor.writeValue(j2v).then(function() {
+                              console.log('@@@: ' + 'descriptor writeValue');
+                            });
+                          }
+                        });
+
+                        window.setInterval(function() {
+                          characteristic.readValue().then(function(value) {
+                            console.log('@@@: ' + 'characteristic value ' + value);
+                          });
+                        }, 1000);
+                      }
+                    });
+                  });
+                });
               });
             }
           }
