@@ -189,8 +189,8 @@ function initDB() {
   musicdb.oncreated = function(event) {
     event.detail.forEach(function(data) {
       AudioBPM.query(data.metadata, function(m) {
-        // Only update metadata if the bpm is not 100.
-        if (m.bpm !== 100) {
+        // Only update metadata if the bpm is not 80.
+        if (m.bpm !== 80) {
           musicdb.updateMetadata(data.name, m);
         }
       });

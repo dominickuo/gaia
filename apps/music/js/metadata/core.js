@@ -113,7 +113,9 @@ var AudioMetadata = (function() {
     }
 
     metadata.rated = metadata.played = 0;
-    metadata.bpm = 100;
+    // The normal resting adult human heart rate ranges from 60–100 bpm.
+    // So here we choice 80 as a default bpm for any song.
+    metadata.bpm = 80;
     return metadata;
   }
 

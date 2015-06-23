@@ -115,6 +115,7 @@ var PlayerView = {
     this.currentIndex = 0;
     this.setSeekBar(0, 0); // Set 0 to default seek position
     this.intervalID = null;
+    this.playingBpm = 80;
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('contextmenu', this);
@@ -148,6 +149,10 @@ var PlayerView = {
     // This shouldn't have handled by music app itself. Remove the patch of
     // bug 894744 once we have better solution.
     window.addEventListener('storage', this._handleInterpageMessage.bind(this));
+
+    window.addEventListener(
+      'heartratechange', this._handleHeartRateChanged.bind(this)
+    );
 
     // Listen to language changes to update the language direction accordingly
     navigator.mozL10n.ready(this.updateL10n.bind(this));
@@ -250,6 +255,7 @@ var PlayerView = {
     this.albumText.dataset.l10nId = metadata.album ? '' : 'unknownAlbum';
 
     this.bpmText.textContent = metadata.bpm;
+    this.playingBpm = metadata.bpm;
 
     this.setCoverImage(fileinfo);
   },
@@ -546,6 +552,40 @@ var PlayerView = {
     var whoIsPlaying = window.localStorage.getItem(this.PLAYER_IS_OCCUPIED_BY);
     if (whoIsPlaying && whoIsPlaying === window.location.href) {
       window.localStorage.removeItem(this.PLAYER_IS_OCCUPIED_BY);
+    }
+  },
+
+  _handleHeartRateChanged: function(event) {
+    var heartrate = event.detail.heartrate;
+    var difference = this.playingBpm - heartrate;
+
+    if (Math.abs(difference) >= 40) {
+      console.log('@@@: Change song');
+
+      var songsIndexes = [];
+
+      this._dataSource.forEach((song, index) => {
+        if (this.playingBpm < 120) {
+          if (song.metadata.bpm >= 120) {
+            songsIndexes.push(index);
+          }
+        } else {
+          if (song.metadata.bpm < 120) {
+            songsIndexes.push(index);
+          }
+        }
+      });
+
+      var getRandomInt = function(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min;
+      };
+
+      var random = getRandomInt(0, songsIndexes.length - 1);
+      var index = songsIndexes[random];
+
+      this.play(index);
+    } else {
+      console.log('@@@: Ignore');
     }
   },
 

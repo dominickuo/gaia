@@ -149,6 +149,7 @@ MediaRemoteControls.prototype._setupBluetooth = function(callback) {
   this._bluetoothHelper.onscostatuschanged = scoConnectionHandler;
 
   this._setupGatt();
+  this._simulateCharacteristicChanged();
 
   if (callback) {
     callback();
@@ -210,10 +211,6 @@ MediaRemoteControls.prototype._setupGatt = function() {
                       if (characteristic.uuid === '00002a37-0000-1000-8000-00805f9b34fb') {
                         console.log('@@@: ' + 'characteristic - ' + characteristic.uuid);
 
-                        characteristic.startNotifications().then(function(value) {
-                          console.log('@@@: ' + 'characteristic - startNotifications - ' + value);
-                        });
-
                         characteristic.descriptors.forEach(function(descriptor) {
                           if (descriptor.uuid === '00002902-0000-1000-8000-00805f9b34fb') {
                             console.log('@@@: ' + 'descriptor - ' + descriptor.uuid);
@@ -223,15 +220,13 @@ MediaRemoteControls.prototype._setupGatt = function() {
 
                             descriptor.writeValue(j2v).then(function() {
                               console.log('@@@: ' + 'descriptor writeValue');
+
+                              characteristic.startNotifications().then(function() {
+                                console.log('@@@: ' + 'characteristic - startNotifications');
+                              });
                             });
                           }
                         });
-
-                        window.setInterval(function() {
-                          characteristic.readValue().then(function(value) {
-                            console.log('@@@: ' + 'characteristic value ' + value);
-                          });
-                        }, 1000);
                       }
                     });
                   });
@@ -243,6 +238,29 @@ MediaRemoteControls.prototype._setupGatt = function() {
       });
     });
   });
+};
+
+MediaRemoteControls.prototype._simulateCharacteristicChanged = function() {
+  var count = 0;
+  var heartrates = [
+    80, 80, 80, 80, 80, 120, 120, 120, 120, 120
+  ];
+
+  window.setInterval(function() {
+    var event = new CustomEvent('heartratechange', {
+      detail: {
+        heartrate: heartrates[count]
+      }
+    });
+
+    window.dispatchEvent(event);
+
+    if (count === heartrates.length - 1) {
+      count = 0;
+    } else {
+      count++;
+    }
+  }, 3000);
 };
 
 /*
